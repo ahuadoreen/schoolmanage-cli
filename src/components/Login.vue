@@ -16,7 +16,8 @@
 </template>
 
 <script>
-  import { requestLogin } from '../api/api';
+  import { postApi } from '../api/api';
+  const qs = require('qs');
   //import NProgress from 'nprogress'
   export default {
     data() {
@@ -24,7 +25,7 @@
         logining: false,
         ruleForm2: {
           account: 'admin',
-          checkPass: '123456'
+          checkPass: 'qwertyuiop'
         },
         rules2: {
           account: [
@@ -51,17 +52,18 @@
             this.logining = true;
             //NProgress.start();
             var loginParams = { username: this.ruleForm2.account, password: this.ruleForm2.checkPass };
-            requestLogin(loginParams).then(data => {
+            postApi(qs.stringify(loginParams), 'login').then(res => {
               this.logining = false;
               //NProgress.done();
-              let { msg, status, user } = data;
-              if (status !== 200) {
+              console.log(res);
+              let { message, code, data } = res;
+              if (code !== 200) {
                 this.$message({
-                  message: msg,
+                  message: message,
                   type: 'error'
                 });
               } else {
-                sessionStorage.setItem('user', JSON.stringify(user));
+                sessionStorage.setItem('user', JSON.stringify(data));
                 this.$router.push({ path: '/' });
               }
             });

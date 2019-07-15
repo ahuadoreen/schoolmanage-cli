@@ -10,11 +10,11 @@ module.exports = {
     // Paths
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
-    proxyTable: {'/api': {
+    proxyTable: {'/studentmanage': {
       target: 'http://localhost:8080',//后端接口地址
       changeOrigin: true,//是否允许跨越
       pathRewrite: {
-          '^/api': '/api',//重写,
+          '^/studentmanage': '/studentmanage',//重写,
       }
   }},
 
@@ -26,7 +26,7 @@ module.exports = {
     notifyOnErrors: true,
     poll: false, // https://webpack.js.org/configuration/dev-server/#devserver-watchoptions-
 
-    
+
     /**
      * Source Maps
      */

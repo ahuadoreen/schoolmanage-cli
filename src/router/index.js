@@ -21,6 +21,11 @@ Vue.use(Router)
 //   ]
 // })
 let routes = [{
+        path: '/login',
+        name: 'Login',
+        component: Login
+      },
+      {
   path:'/',
   component: Main,
   hidden: true,

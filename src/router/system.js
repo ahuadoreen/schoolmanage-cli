@@ -1,5 +1,6 @@
 import Main from '@/components/Home'
-import Contract from '@/components/system/Contract'
+import Teachers from '@/components/system/Teachers'
+import Subject from '@/components/system/Subject'
 
 const SystemRouter = [{
     path: '/system',
@@ -7,10 +8,15 @@ const SystemRouter = [{
     component: Main,
     iconCls: 'fa fa-address-card',
     children: [{
-        path: '/system/contract',
-        component: Contract,
-        name: '联系人管理'
-    }]
+      path: '/system/Teachers',
+      component: Teachers,
+      name: '教师管理'
+    },
+      {
+        path: '/system/Subject',
+        component: Subject,
+        name: '科目管理'
+      }]
 }]
 
 export {
