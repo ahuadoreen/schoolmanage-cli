@@ -16,21 +16,20 @@
     </el-col>
 
     <!--列表-->
-    <el-table :data="users" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;">
+    <el-table :data="classes" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;">
       <el-table-column type="selection" width="55">
       </el-table-column>
       <el-table-column type="index" width="60">
       </el-table-column>
-      <el-table-column prop="name" label="姓名" width="120" sortable>
+      <el-table-column prop="className" label="班级" width="120" sortable>
       </el-table-column>
-      <el-table-column prop="gender" label="性别" width="100" :formatter="formatgender" sortable>
+      <el-table-column prop="grade" label="年级" width="120" :formatter="formatGrade" sortable>
       </el-table-column>
-      <el-table-column prop="age" label="年龄" width="100" sortable>
+      <el-table-column prop="mainTeacher.name" label="班主任" min-width="160" sortable>
       </el-table-column>
-      <el-table-column prop="subject" label="科目" min-width="180" sortable>
-      </el-table-column>
-      <el-table-column label="操作" width="150">
+      <el-table-column label="操作" width="240">
         <template scope="scope">
+          <el-button size="small" @click="handleCourseTeacher(scope.$index, scope.row)">查看课程</el-button>
           <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
           <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
         </template>
@@ -44,23 +43,62 @@
       </el-pagination>
     </el-col>
 
+    <el-dialog title="课程及任课老师" :visible.sync="courseTeachersVisible" :close-on-click-modal="false">
+      <el-table :data="courseTeachers" highlight-current-row v-loading="listLoading" style="width: 100%;">
+        <el-table-column type="index" width="60">
+        </el-table-column>
+        <el-table-column prop="course.subject.name" label="科目" min-width="180" sortable>
+        </el-table-column>
+        <el-table-column prop="teacher.name" label="老师" width="120" sortable>
+        </el-table-column>
+        <el-table-column label="操作" width="150">
+          <template scope="scope">
+            <el-button size="small" @click="handleCourseTeacherEdit(classId, scope.$index, scope.row)">编辑</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
+
+    <el-dialog title="编辑" :visible.sync="courseTeacherEditFormVisible" :close-on-click-modal="false">
+      <el-form :model="courseTeacherEditForm" label-width="80px" ref="courseTeacherEditForm">
+        <el-form-item label="任课老师">
+          <el-select v-model="courseTeacherEditForm.teacherId" placeholder="请选择">
+            <el-option
+              v-for="teacher in teachers"
+              :key="teacher.id"
+              :label="teacher.name"
+              :value="teacher.id">
+            </el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click.native="courseTeacherEditFormVisible = false">取消</el-button>
+        <el-button type="primary" @click.native="editCourseTeacherSubmit" :loading="editLoading">提交</el-button>
+      </div>
+    </el-dialog>
+
     <!--编辑界面-->
     <el-dialog title="编辑" :visible.sync="editFormVisible" :close-on-click-modal="false">
       <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
-        <el-form-item label="姓名" prop="name">
-          <el-input v-model="editForm.name" auto-complete="off"></el-input>
+        <el-form-item label="班级" prop="className">
+          <el-input v-model="editForm.className" auto-complete="off"></el-input>
         </el-form-item>
-        <el-form-item label="性别">
-          <el-radio-group v-model="editForm.gender">
-            <el-radio class="radio" :label="1">男</el-radio>
-            <el-radio class="radio" :label="0">女</el-radio>
+        <el-form-item label="年级">
+          <el-radio-group v-model="editForm.grade">
+            <el-radio class="radio" :label="1">一年级</el-radio>
+            <el-radio class="radio" :label="2">二年级</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="年龄">
-          <el-input-number v-model="editForm.age" :min="0" :max="200"></el-input-number>
-        </el-form-item>
-        <el-form-item label="科目">
-          <el-input v-model="editForm.subject"></el-input>
+        <el-form-item label="班主任">
+          <el-select v-model="editForm.mainTeacherId" placeholder="请选择">
+            <el-option
+              v-for="teacher in teachers"
+              :key="teacher.id"
+              :label="teacher.name"
+              :value="teacher.id">
+            </el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -72,20 +110,24 @@
     <!--新增界面-->
     <el-dialog title="新增" :visible.sync="addFormVisible" :close-on-click-modal="false">
       <el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
-        <el-form-item label="姓名" prop="name">
-          <el-input v-model="addForm.name" auto-complete="off"></el-input>
+        <el-form-item label="班级" prop="className">
+          <el-input v-model="addForm.className" auto-complete="off"></el-input>
         </el-form-item>
-        <el-form-item label="性别">
-          <el-radio-group v-model="addForm.gender">
-            <el-radio class="radio" :label="1">男</el-radio>
-            <el-radio class="radio" :label="0">女</el-radio>
+        <el-form-item label="年级">
+          <el-radio-group v-model="addForm.grade">
+            <el-radio class="radio" :label="1">一年级</el-radio>
+            <el-radio class="radio" :label="2">二年级</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="年龄">
-          <el-input-number v-model="addForm.age" :min="0" :max="200"></el-input-number>
-        </el-form-item>
-        <el-form-item label="科目">
-          <el-input v-model="addForm.subject"></el-input>
+        <el-form-item label="班主任">
+          <el-select v-model="addForm.mainTeacherId" placeholder="请选择">
+            <el-option
+              v-for="teacher in teachers"
+              :key="teacher.id"
+              :label="teacher.name"
+              :value="teacher.id">
+            </el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -105,7 +147,11 @@
         filters: {
           name: ''
         },
+        classes: [],
         teachers: [],
+        courseTeachers: [],
+        classId: 0,
+        grade: 0,
         total: 0,
         page: 1,
         listLoading: false,
@@ -114,53 +160,91 @@
         editFormVisible: false,//编辑界面是否显示
         editLoading: false,
         editFormRules: {
-          name: [
-            { required: true, message: '请输入姓名', trigger: 'blur' }
+          className: [
+            { required: true, message: '请输入班级', trigger: 'blur' }
           ]
         },
         //编辑界面数据
         editForm: {
           id: 0,
-          name: '',
-          gender: -1,
-          age: 0,
-          subject: ''
+          className: '',
+          grade: -1,
+          mainTeacherId: 0
         },
 
         addFormVisible: false,//新增界面是否显示
         addLoading: false,
         addFormRules: {
-          name: [
-            { required: true, message: '请输入姓名', trigger: 'blur' }
+          className: [
+            { required: true, message: '请输入班级', trigger: 'blur' }
           ]
         },
         //新增界面数据
         addForm: {
-          name: '',
-          gender: -1,
-          age: 0,
-          subject: ''
+          className: '',
+          grade: -1,
+          mainTeacherId: 0
+        },
+        courseTeachersVisible: false,
+        courseTeacherEditFormVisible: false,
+        courseTeacherEditForm: {
+          id: 0,
+          gradeCourseId: 0,
+          teacherId: 0
         }
 
       }
     },
     methods: {
-      //性别显示转换
-      formatgender: function (row, column) {
-        return row.gender == 1 ? '男' : row.gender == 0 ? '女' : '未知';
+      formatGrade: function (row, column) {
+        let str = ''
+        console.log("grade:" + row.grade)
+        switch (row.grade) {
+          case 1:
+            str = '一年级'
+            break
+          case 2:
+            str = '二年级'
+            break
+        }
+        return str;
       },
       handleCurrentChange(val) {
         this.page = val;
-        this.getSubjects();
+        this.getClasses();
       },
       //获取用户列表
-      getSubjects() {
+      getClasses() {
         let para = {
           index: this.page - 1,
           size: 5,
           name: this.filters.name
         };
         this.listLoading = true;
+        //NProgress.start();
+        getApi(para,'class/classes').then((res) => {
+          console.log(res);
+          let { message, code, data } = res;
+          if (code !== 200) {
+            this.$message({
+              message: message,
+              type: 'error'
+            });
+          } else {
+            console.log(JSON.stringify(data));
+            this.total = data.total;
+            this.classes = data.classes;
+            this.listLoading = false;
+          }
+          //NProgress.done();
+        });
+      },
+      getTeachers() {
+        let para = {
+          index: 0,
+          size: 1000,
+          name: ''
+        };
         //NProgress.start();
         getApi(para,'teacher/teachers').then((res) => {
           console.log(res);
@@ -172,9 +256,7 @@
             });
           } else {
             console.log(JSON.stringify(data));
-            this.total = data.total;
             this.teachers = data.teachers;
-            this.listLoading = false;
           }
           //NProgress.done();
         });
@@ -187,14 +269,14 @@
           this.listLoading = true;
           //NProgress.start();
           let para = { id: row.id };
-          postApi(qs.stringify(para),'teacher/deleteTeacher').then((res) => {
+          postApi(qs.stringify(para),'class/deleteClass').then((res) => {
             this.listLoading = false;
             //NProgress.done();
             this.$message({
               message: '删除成功',
               type: 'success'
             });
-            this.getSubjects();
+            this.getClasses();
           });
         }).catch(() => {
 
@@ -203,18 +285,56 @@
       //显示编辑界面
       handleEdit: function (index, row) {
         this.editFormVisible = true;
-        this.editForm = Object.assign({}, row);
+        this.editForm.id = row.id;
+        this.editForm.className = row.className;
+        this.editForm.grade = row.grade;
+        this.editForm.mainTeacherId = row.mainTeacher.id;
       },
       //显示新增界面
       handleAdd: function () {
         console.log("add")
         this.addFormVisible = true;
         this.addForm = {
-          name: '',
-          gender: -1,
-          age: 0,
-          subject: ''
+          className: '',
+          grade: -1,
+          mainTeacherId: ''
         };
+      },
+      handleCourseTeacher: function (index, row) {
+        this.courseTeachersVisible = true;
+        this.classId = row.id;
+        this.grade = row.grade;
+        let para = {
+          id: row.id,
+          grade: row.grade
+        };
+        this.listLoading = true;
+        //NProgress.start();
+        getApi(para,'class/courseTeachers').then((res) => {
+          console.log(res);
+          let { message, code, data } = res;
+          if (code !== 200) {
+            this.$message({
+              message: message,
+              type: 'error'
+            });
+          } else {
+            console.log(JSON.stringify(data));
+            this.courseTeachers = data.courseTeachers;
+            this.listLoading = false;
+          }
+          //NProgress.done();
+        });
+      },
+      handleCourseTeacherEdit: function (id, index, row) {
+        this.courseTeacherEditFormVisible = true;
+        this.courseTeacherEditForm.id = id;
+        this.courseTeacherEditForm.gradeCourseId = row.course.id;
+        if(row.teacher != undefined){
+          this.courseTeacherEditForm.teacherId = row.teacher.id;
+        }else{
+          this.courseTeacherEditForm.teacherId = '';
+        }
       },
       //编辑
       editSubmit: function () {
@@ -225,7 +345,7 @@
               //NProgress.start();
               let para = Object.assign({}, this.editForm);
               // para.birth = (!para.birth || para.birth == '') ? '' : util.formatDate.format(new Date(para.birth), 'yyyy-MM-dd');
-              postApi(qs.stringify(para),'teacher/editTeacher').then((res) => {
+              postApi(qs.stringify(para),'class/editClass').then((res) => {
                 this.editLoading = false;
                 //NProgress.done();
                 this.$message({
@@ -234,7 +354,7 @@
                 });
                 this.$refs['editForm'].resetFields();
                 this.editFormVisible = false;
-                this.getSubjects();
+                this.getClasses();
               });
             });
           }
@@ -249,7 +369,7 @@
               //NProgress.start();
               let para = Object.assign({}, this.addForm);
               // para.birth = (!para.birth || para.birth == '') ? '' : util.formatDate.format(new Date(para.birth), 'yyyy-MM-dd');
-              postApi(qs.stringify(para),'teacher/addTeacher').then((res) => {
+              postApi(qs.stringify(para),'class/addClass').then((res) => {
                 this.addLoading = false;
                 //NProgress.done();
                 this.$message({
@@ -258,7 +378,7 @@
                 });
                 this.$refs['addForm'].resetFields();
                 this.addFormVisible = false;
-                this.getSubjects();
+                this.getClasses();
               });
             });
           }
@@ -283,15 +403,59 @@
               message: '删除成功',
               type: 'success'
             });
-            this.getSubjects();
+            this.getClasses();
           });
         }).catch(() => {
 
         });
+      },
+      editCourseTeacherSubmit: function () {
+        this.$refs.courseTeacherEditForm.validate((valid) => {
+          if (valid) {
+            this.$confirm('确认提交吗？', '提示', {}).then(() => {
+              this.editLoading = true;
+              //NProgress.start();
+              let para = Object.assign({}, this.courseTeacherEditForm);
+              // para.birth = (!para.birth || para.birth == '') ? '' : util.formatDate.format(new Date(para.birth), 'yyyy-MM-dd');
+              postApi(qs.stringify(para),'class/editCourseTeacher').then((res) => {
+                this.editLoading = false;
+                //NProgress.done();
+                this.$message({
+                  message: '提交成功',
+                  type: 'success'
+                });
+                this.$refs['courseTeacherEditForm'].resetFields();
+                this.courseTeacherEditFormVisible = false;
+                let para = {
+                  id: this.classId,
+                  grade: this.grade
+                };
+                this.listLoading = true;
+                //NProgress.start();
+                getApi(para,'class/courseTeachers').then((res) => {
+                  console.log(res);
+                  let { message, code, data } = res;
+                  if (code !== 200) {
+                    this.$message({
+                      message: message,
+                      type: 'error'
+                    });
+                  } else {
+                    console.log(JSON.stringify(data));
+                    this.courseTeachers = data.courseTeachers;
+                    this.listLoading = false;
+                  }
+                  //NProgress.done();
+                });;
+              });
+            });
+          }
+        });
       }
     },
     mounted() {
-      this.getUsers();
+      this.getClasses();
+      this.getTeachers();
     }
   }
 
