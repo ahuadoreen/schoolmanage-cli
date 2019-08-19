@@ -25,3 +25,6 @@ npm test
 ```
 
 For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+基于vue前端框架和elementUI开发的学生管理系统的前端部分，后台代码可查看
+1. spring data jpa版本的https://github.com/ahuadoreen/studentmanage
+2. springboot加mybatis版本的https://github.com/ahuadoreen/studentmanager
