@@ -190,7 +190,8 @@
         courseTeacherEditForm: {
           id: 0,
           gradeCourseId: 0,
-          teacherId: 0
+          teacherId: 0,
+          subjectId: 0
         }
 
       }
@@ -335,6 +336,7 @@
         }else{
           this.courseTeacherEditForm.teacherId = '';
         }
+        this.courseTeacherEditForm.subjectId = row.course.subject.id;
       },
       //编辑
       editSubmit: function () {

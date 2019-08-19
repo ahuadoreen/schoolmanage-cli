@@ -26,7 +26,7 @@ service.interceptors.response.use(
   response => {
     const res = response.data
     console.log('test: ' + res.code)
-    if (res.code == 403) { //----------------------------------短期token超时
+    if (res.code == 401) { //----------------------------------短期token超时
       sessionStorage.removeItem('user');
       router.replace({
         path: '/login',

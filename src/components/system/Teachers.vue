@@ -27,7 +27,7 @@
       </el-table-column>
       <el-table-column prop="age" label="年龄" width="100" sortable>
       </el-table-column>
-      <el-table-column prop="subject" label="科目" min-width="180" :formatter="formatSubject" sortable>
+      <el-table-column prop="subjectNames" label="科目" min-width="180" :formatter="formatSubject" sortable>
       </el-table-column>
       <el-table-column label="操作" width="150">
         <template scope="scope">
@@ -40,7 +40,7 @@
     <!--工具条-->
     <el-col :span="24" class="toolbar">
       <el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">批量删除</el-button>
-      <el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="20" :total="total" style="float:right;">
+      <el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="5" :total="total" style="float:right;">
       </el-pagination>
     </el-col>
 
@@ -167,8 +167,13 @@
         return row.gender == 1 ? '男' : row.gender == 0 ? '女' : '未知';
       },
       formatSubject: function (row, column) {
+        //for mybatis
+        if(row.subjectNames != undefined){
+          return row.subjectNames;
+        }
+        //for jpa
         let str = '';
-        let array = row.subject;
+        let array = row.subjects;
         for(let i=0;i<array.length;i++){
           if(i == array.length - 1){
             str = str + array[i].name
@@ -260,9 +265,19 @@
         this.editForm.name = row.name;
         this.editForm.age = row.age;
         this.editForm.gender = row.gender;
-        let array = row.subject;
-        for(let i=0;i<array.length;i++){
-          this.editForm.subjectIds[i] = array[i].id;
+        this.editForm.subjectIds = [];
+        if(row.subjectIds != undefined){
+          //for mybatis
+          let array = row.subjectIds.split(",")
+          for(let i=0;i<array.length;i++){
+            this.editForm.subjectIds[i] = Number(array[i]);
+          }
+        }else{
+          //for jpa
+          let array = row.subjects;
+          for(let i=0;i<array.length;i++){
+            this.editForm.subjectIds[i] = array[i].id;
+          }
         }
       },
       //显示新增界面

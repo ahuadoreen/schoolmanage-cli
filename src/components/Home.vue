@@ -33,7 +33,7 @@
         <el-col :span="24" class="main">
             <aside :class="collapsed?'menu-collapsed':'menu-expanded'">
                 <!--导航菜单-->
-                <el-menu background-color="#545c64" text-color="#fff" active-text-color="#ffd04b" v-bind:style=" collapsed ? {} : { 'width': '230px' } " :default-active="$route.path" class="el-menu-vertical-demo" unique-opened router v-show="!collapsed">
+                <el-menu background-color="#fff" text-color="#434a50" active-text-color="#409EFF" v-bind:style=" collapsed ? {} : { 'width': '230px' } " :default-active="$route.path" class="el-menu-vertical-demo" unique-opened router v-show="!collapsed">
                     <template v-for="(item,index) in menuData" v-if="!item.hidden">
                         <el-submenu :index="index+''" v-if="!item.leaf">
                             <template slot="title">
@@ -94,7 +94,7 @@
 </template>
 
 <script>
-    
+
     let data = () => {
         return {
             sysName: '后台管理系统',
@@ -151,7 +151,7 @@
         .header {
             height: 60px;
             line-height: 60px;
-            background: #545c64;
+            background: #409EFF;
             color: #fff;
             .userinfo {
                 text-align: right;
@@ -212,10 +212,10 @@
                 /*侧边菜单*/
                 .el-menu {
                     height: 100%;
-                    background-color: #545c64;
+                    background-color: #409EFF;
                     /*选中列*/
                     .el-menu-item {
-                        background-color: #545c64;
+                        background-color: #409EFF;
                     }
                     .el-submenu__title {
                         i {

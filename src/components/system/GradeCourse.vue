@@ -88,6 +88,11 @@
         return str;
       },
       formatSubject: function (row, column) {
+        //for mybatis
+        if(row.courses != undefined){
+          return row.courses.subjectNames;
+        }
+        //for jpa
         let str = '';
         let array = row.course;
         for(let i=0;i<array.length;i++){
@@ -174,9 +179,18 @@
         this.editFormVisible = true;
         this.editForm.subjectIds = []
         this.editForm.grade = row.grade;
-        let array = row.course;
-        for(let i=0;i<array.length;i++){
-          this.editForm.subjectIds[i] = array[i].subject.id;
+        if(row.courses != undefined){
+          //for mybatis
+          let array = row.courses.subjectIds.split(",")
+          for(let i=0;i<array.length;i++){
+            this.editForm.subjectIds[i] = Number(array[i]);
+          }
+        }else{
+          //for jpa
+          let array = row.course;
+          for(let i=0;i<array.length;i++){
+            this.editForm.subjectIds[i] = array[i].subject.id;
+          }
         }
       },
       //编辑
