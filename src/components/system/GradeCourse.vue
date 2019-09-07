@@ -73,10 +73,8 @@
       }
     },
     methods: {
-      //性别显示转换
       formatGrade: function (row, column) {
         let str = ''
-        console.log("grade:" + row.grade)
         switch (row.grade) {
           case 1:
             str = '一年级'
@@ -95,6 +93,7 @@
         //for jpa
         let str = '';
         let array = row.course;
+        if(array == undefined) return str;
         for(let i=0;i<array.length;i++){
           if(i == array.length - 1){
             str = str + array[i].subject.name
