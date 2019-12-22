@@ -8,6 +8,7 @@ const service = axios.create({
 })
 // request拦截器
 service.interceptors.request.use(config => {
+  console.log(user)
   let user = JSON.parse(sessionStorage.getItem('user'));
   if (user != null){
     console.log('test: ' + user.token)
@@ -32,6 +33,17 @@ service.interceptors.response.use(
         path: '/login',
         query: {redirect: router.currentRoute.fullPath}
       })
+    }else if(res.code == 100){
+      const newToken = res.token;
+      let user = JSON.parse(sessionStorage.getItem('user'));
+      if (user != null){
+        user.token = newToken;
+        // response.config.headers['token'] = newToken;
+        sessionStorage.setItem('user', JSON.stringify(user));
+        console.log(response)
+      }
+      response.config.baseURL = '';
+      return service(response.config);
     }else if (res.code != 200) { //-----------------------------------------异常情况
         Notification({
           message: res.msg,
