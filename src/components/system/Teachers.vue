@@ -69,6 +69,16 @@
             </el-option>
           </el-select>
         </el-form-item>
+        <el-form-item label="头像">
+          <el-upload
+            class="avatar-uploader"
+            action=""
+            :show-file-list="false"
+            :before-upload="beforeAvatarEdit">
+            <img v-if="editForm.imageUrl" :src="editForm.imageUrl" class="avatar">
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+          </el-upload>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click.native="editFormVisible = false">取消</el-button>
@@ -100,6 +110,16 @@
               :value="subject.id">
             </el-option>
           </el-select>
+        </el-form-item>
+        <el-form-item label="头像">
+          <el-upload
+            class="avatar-uploader"
+            action=""
+            :show-file-list="false"
+            :before-upload="beforeAvatarUpload">
+            <img v-if="addForm.imageUrl" :src="addForm.imageUrl" class="avatar">
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+          </el-upload>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -141,7 +161,9 @@
           name: '',
           gender: -1,
           age: 0,
-          subjectIds: []
+          subjectIds: [],
+          imageUrl: '',
+          file: ''
         },
 
         addFormVisible: false,//新增界面是否显示
@@ -156,7 +178,9 @@
           name: '',
           gender: -1,
           age: 0,
-          subjectIds: []
+          subjectIds: [],
+          imageUrl: '',
+          file: ''
         }
 
       }
@@ -265,6 +289,7 @@
         this.editForm.name = row.name;
         this.editForm.age = row.age;
         this.editForm.gender = row.gender;
+        this.editForm.imageUrl = row.imageUrl;
         this.editForm.subjectIds = [];
         if(row.subjectIds != undefined){
           //for mybatis
@@ -287,7 +312,9 @@
           name: '',
           gender: -1,
           age: 0,
-          subjectIds: []
+          subjectIds: [],
+          imageUrl: '',
+          file: ''
         };
       },
       //编辑
@@ -299,7 +326,14 @@
               //NProgress.start();
               let para = Object.assign({}, this.editForm);
               // para.birth = (!para.birth || para.birth == '') ? '' : util.formatDate.format(new Date(para.birth), 'yyyy-MM-dd');
-              postApi(qs.stringify(para, { indices: false }),'teacher/editTeacher').then((res) => {
+              let formData = new FormData();
+              formData.append('id', this.editForm.id);
+              formData.append('name', this.editForm.name);
+              formData.append('age', this.editForm.age);
+              formData.append('gender', this.editForm.gender);
+              formData.append('subjectIds', this.editForm.subjectIds);
+              formData.append('file', this.editForm.file);
+              postApi(formData,'teacher/editTeacher').then((res) => {
                 this.editLoading = false;
                 //NProgress.done();
                 this.$message({
@@ -321,10 +355,16 @@
             this.$confirm('确认提交吗？', '提示', {}).then(() => {
               this.addLoading = true;
               //NProgress.start();
-              let para = Object.assign({}, this.addForm);
+              // let para = Object.assign({}, this.addForm);
               console.log(this.addForm)
+              let formData = new FormData();
+              formData.append('name', this.addForm.name);
+              formData.append('age', this.addForm.age);
+              formData.append('gender', this.addForm.gender);
+              formData.append('subjectIds', this.addForm.subjectIds);
+              formData.append('file', this.addForm.file);
               // para.birth = (!para.birth || para.birth == '') ? '' : util.formatDate.format(new Date(para.birth), 'yyyy-MM-dd');
-              postApi(qs.stringify(para, { indices: false }),'teacher/addTeacher').then((res) => {
+              postApi(formData,'teacher/addTeacher').then((res) => {
                 this.addLoading = false;
                 //NProgress.done();
                 this.$message({
@@ -338,6 +378,36 @@
             });
           }
         });
+      },
+      beforeAvatarUpload(file) {
+        const isJPG = file.type === 'image/jpeg';
+        const isLt2M = file.size / 1024 / 1024 < 2;
+
+        if (!isJPG) {
+          this.$message.error('上传头像图片只能是 JPG 格式!');
+        }
+        if (!isLt2M) {
+          this.$message.error('上传头像图片大小不能超过 2MB!');
+        }
+        console.log("file: " + window.URL.createObjectURL(file));
+        this.addForm.imageUrl = window.URL.createObjectURL(file);
+        this.addForm.file = file;
+        return isJPG && isLt2M;
+      },
+      beforeAvatarEdit(file) {
+        const isJPG = file.type === 'image/jpeg';
+        const isLt2M = file.size / 1024 / 1024 < 2;
+
+        if (!isJPG) {
+          this.$message.error('上传头像图片只能是 JPG 格式!');
+        }
+        if (!isLt2M) {
+          this.$message.error('上传头像图片大小不能超过 2MB!');
+        }
+        console.log("file: " + window.URL.createObjectURL(file));
+        this.editForm.imageUrl = window.URL.createObjectURL(file);
+        this.editForm.file = file;
+        return isJPG && isLt2M;
       },
       selsChange: function (sels) {
         this.sels = sels;
@@ -373,6 +443,28 @@
 
 </script>
 
-<style scoped>
-
+<style>
+  .avatar-uploader .el-upload {
+    border: 1px dashed #d9d9d9;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .avatar-uploader .el-upload:hover {
+    border-color: #409EFF;
+  }
+  .avatar-uploader-icon {
+    font-size: 28px;
+    color: #8c939d;
+    width: 178px;
+    height: 178px;
+    line-height: 178px;
+    text-align: center;
+  }
+  .avatar {
+    width: 178px;
+    height: 178px;
+    display: block;
+  }
 </style>
